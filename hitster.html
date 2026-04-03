@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>היטסטר - משחק טריוויה מוזיקלי</title>
+    
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎧</text></svg>">
+    
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .game-container {
+            background-color: #1e1e1e;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.7);
+            text-align: center;
+            max-width: 450px;
+            width: 90%;
+            position: relative;
+            overflow: hidden;
+        }
+        .progress-bar-container {
+            width: 100%;
+            height: 5px;
+            background-color: #333;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        .progress-bar {
+            height: 100%;
+            background-color: #1db954;
+            width: 0%;
+            transition: width 0.4s ease;
+        }
+        h1 {
+            color: #1db954;
+            margin-top: 10px;
+            font-size: 2.2em;
+        }
+        .song-info {
+            background: #282828;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            position: relative;
+        }
+        .album-art {
+            width: 150px;
+            height: 150px;
+            border-radius: 10px;
+            margin: 0 auto 15px auto;
+            display: none; 
+            object-fit: cover;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            animation: fadeIn 0.5s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .song-title {
+            font-weight: bold;
+            font-size: 1.6em;
+            margin-bottom: 5px;
+        }
+        .song-artist {
+            color: #b3b3b3;
+            font-size: 1.1em;
+            margin-bottom: 15px;
+        }
+        .audio-player-container {
+            margin-top: 15px;
+            min-height: 54px;
+        }
+        audio {
+            width: 100%;
+            height: 40px;
+            outline: none;
+            border-radius: 20px;
+        }
+        .loading-text {
+            color: #1db954;
+            font-size: 0.9em;
+        }
+        .input-area {
+            margin-bottom: 20px;
+        }
+        input {
+            padding: 15px;
+            font-size: 1.2em;
+            border-radius: 25px;
+            border: 2px solid #404040;
+            background-color: #2b2b2b;
+            color: white;
+            text-align: center;
+            width: 140px;
+            outline: none;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+        input:focus {
+            border-color: #1db954;
+            background-color: #333;
+        }
+        button {
+            background-color: #1db954;
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            font-size: 1.2em;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+            margin-top: 15px;
+            box-shadow: 0 4px 10px rgba(29, 185, 84, 0.3);
+        }
+        button:hover {
+            background-color: #1ed760;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(29, 185, 84, 0.4);
+        }
+        button:active {
+            transform: translateY(1px);
+        }
+        .feedback {
+            font-size: 1.3em;
+            font-weight: bold;
+            min-height: 40px;
+            margin-bottom: 20px;
+            color: #ffca28;
+            padding: 10px;
+            border-radius: 10px;
+        }
+        .score-board {
+            display: flex;
+            justify-content: space-between;
+            border-top: 1px solid #404040;
+            padding-top: 20px;
+            font-size: 1.1em;
+            color: #b3b3b3;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-container">
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+
+        <h1>🎸 היטסטר</h1>
+        
+        <div id="gameScreen">
+            <p style="color: #b3b3b3; margin-bottom: 5px;">באיזו שנה יצא השיר הבא?</p>
+            
+            <div class="song-info">
+                <img id="albumArt" class="album-art" src="" alt="Album Art">
+                <div class="song-title" id="songTitle">שם השיר</div>
+                <div class="song-artist" id="songArtist">אמן</div>
+                
+                <div class="audio-player-container" id="audioContainer">
+                    <span class="loading-text" id="loadingText">מחפש קטע שמע... ⏳</span>
+                </div>
+            </div>
+            
+            <div class="input-area">
+                <input type="number" id="yearInput" placeholder="שנה (למשל 1995)">
+                <br>
+                <button id="submitBtn" onclick="checkGuess()">שלחי ניחוש</button>
+            </div>
+            
+            <div class="feedback" id="feedbackMsg"></div>
+            
+            <div class="score-board">
+                <span id="scoreDisplay">נקודות: 0</span>
+                <span id="progressDisplay">שיר 1 / 10</span>
+            </div>
+        </div>
+
+        <div id="endScreen" class="hidden">
+            <h2 style="font-size: 2em; margin-bottom: 10px;">המשחק נגמר! 🎉</h2>
+            <p>השגת <span id="finalScore" style="color: #1db954; font-weight: bold; font-size: 1.8em;"></span> נקודות.</p>
+            <p id="finalMessage" style="font-size: 1.2em; color: #b3b3b3; margin-bottom: 30px;"></p>
+            <button onclick="startGame()">שחקי שוב 🔄</button>
+        </div>
+    </div>
+
+    <script>
+        // === מאגר השירים נמצא עכשיו כאן בפנים! ===
+        const allSongs = [
+            // שנות ה-60
+            { title: "Hey Jude", artist: "The Beatles", year: 1968 },
+            { title: "Paint It, Black", artist: "The Rolling Stones", year: 1966 },
+            { title: "Respect", artist: "Aretha Franklin", year: 1967 },
+            { title: "Good Vibrations", artist: "The Beach Boys", year: 1966 },
+            { title: "Light My Fire", artist: "The Doors", year: 1967 },
+            { title: "My Way", artist: "Frank Sinatra", year: 1969 },
+            { title: "Here Comes The Sun", artist: "The Beatles", year: 1969 },
+            { title: "Suspicious Minds", artist: "Elvis Presley", year: 1969 },
+            { title: "Stand By Me", artist: "Ben E. King", year: 1961 },
+            { title: "Ring of Fire", artist: "Johnny Cash", year: 1963 },
+            { title: "פראג", artist: "אריק איינשטיין", year: 1969 },
+            { title: "מלכות החרמון", artist: "להקת פיקוד צפון", year: 1968 },
+            { title: "זמר נוגה (התשמע קולי)", artist: "החלונות הגבוהים", year: 1967 },
+            { title: "בשמלה אדומה", artist: "להקת הנחל", year: 1968 },
+            { title: "חורשת האקליפטוס", artist: "צוות הווי נחל", year: 1968 },
+            { title: "עטור מצחך", artist: "אריק איינשטיין", year: 1977 },
+            { title: "עין גדי", artist: "אריק איינשטיין", year: 1966 },
+
+            // שנות ה-70
+            { title: "Bohemian Rhapsody", artist: "Queen", year: 1975 },
+            { title: "Hotel California", artist: "Eagles", year: 1976 },
+            { title: "Dancing Queen", artist: "ABBA", year: 1976 },
+            { title: "Stayin' Alive", artist: "Bee Gees", year: 1977 },
+            { title: "Imagine", artist: "John Lennon", year: 1971 },
+            { title: "Go Your Own Way", artist: "Fleetwood Mac", year: 1976 },
+            { title: "Stairway to Heaven", artist: "Led Zeppelin", year: 1971 },
+            { title: "I Will Survive", artist: "Gloria Gaynor", year: 1978 },
+            { title: "Don't Stop Me Now", artist: "Queen", year: 1979 },
+            { title: "Superstition", artist: "Stevie Wonder", year: 1972 },
+            { title: "המגפיים של ברוך", artist: "כוורת", year: 1973 },
+            { title: "נתתי לה חיי", artist: "כוורת", year: 1974 },
+            { title: "הילדה הכי יפה בגן", artist: "יהודית רביץ", year: 1978 },
+            { title: "אדון שוקו", artist: "אריק איינשטיין", year: 1973 },
+            { title: "חלומות", artist: "רוחמה רז", year: 1979 },
+            { title: "שיר אהבה בדואי", artist: "דויד ברוזה ויעל לוי", year: 1978 },
+            { title: "עוף גוזל", artist: "אריק איינשטיין", year: 1987 },
+            { title: "הללויה", artist: "גלי עטרי וחלב ודבש", year: 1979 },
+
+            // שנות ה-80
+            { title: "Billie Jean", artist: "Michael Jackson", year: 1983 },
+            { title: "Take On Me", artist: "a-ha", year: 1985 },
+            { title: "Livin' on a Prayer", artist: "Bon Jovi", year: 1986 },
+            { title: "Like a Prayer", artist: "Madonna", year: 1989 },
+            { title: "Sweet Child O' Mine", artist: "Guns N' Roses", year: 1987 },
+            { title: "Every Breath You Take", artist: "The Police", year: 1983 },
+            { title: "Wake Me Up Before You Go-Go", artist: "Wham!", year: 1984 },
+            { title: "Careless Whisper", artist: "George Michael", year: 1984 },
+            { title: "Eye of the Tiger", artist: "Survivor", year: 1982 },
+            { title: "Africa", artist: "Toto", year: 1982 },
+            { title: "רכבת לילה", artist: "משינה", year: 1986 },
+            { title: "הפרח בגני", artist: "זוהר ארגוב", year: 1982 },
+            { title: "עוד נגיע", artist: "ירדנה ארזי", year: 1985 },
+            { title: "מקיץ אל החלום", artist: "גלי עטרי", year: 1988 },
+            { title: "רואים רחוק רואים שקוף", artist: "שמוליק קראוס", year: 1983 },
+            { title: "אין מוצא", artist: "אדם", year: 1987 },
+            { title: "אנשי הגשם", artist: "משה דץ", year: 1984 },
+            { title: "אלינור", artist: "זוהר ארגוב", year: 1980 },
+
+            // שנות ה-90
+            { title: "Smells Like Teen Spirit", artist: "Nirvana", year: 1991 },
+            { title: "Wannabe", artist: "Spice Girls", year: 1996 },
+            { title: "...Baby One More Time", artist: "Britney Spears", year: 1998 },
+            { title: "I Want It That Way", artist: "Backstreet Boys", year: 1999 },
+            { title: "Wonderwall", artist: "Oasis", year: 1995 },
+            { title: "Losing My Religion", artist: "R.E.M.", year: 1991 },
+            { title: "Vogue", artist: "Madonna", year: 1990 },
+            { title: "No Scrubs", artist: "TLC", year: 1999 },
+            { title: "Don't Speak", artist: "No Doubt", year: 1996 },
+            { title: "Waterfalls", artist: "TLC", year: 1994 },
+            { title: "צאי אל החלון", artist: "אייל גולן", year: 1997 },
+            { title: "מכופף הבננות", artist: "שבק ס", year: 1995 },
+            { title: "איזה עולם", artist: "טיפקס", year: 1999 },
+            { title: "תותים", artist: "אתניקס", year: 1992 },
+            { title: "לבכות לך", artist: "אביב גפן", year: 1996 },
+            { title: "יעקב", artist: "ללדין", year: 1994 },
+            { title: "למה לי פוליטיקה עכשיו", artist: "משינה", year: 1990 },
+            { title: "דמעות", artist: "אייל גולן", year: 1998 },
+
+            // שנות ה-2000
+            { title: "Crazy in Love", artist: "Beyoncé", year: 2003 },
+            { title: "Lose Yourself", artist: "Eminem", year: 2002 },
+            { title: "Viva La Vida", artist: "Coldplay", year: 2008 },
+            { title: "Poker Face", artist: "Lady Gaga", year: 2008 },
+            { title: "Mr. Brightside", artist: "The Killers", year: 2003 },
+            { title: "Hey Ya!", artist: "Outkast", year: 2003 },
+            { title: "Umbrella", artist: "Rihanna", year: 2007 },
+            { title: "Toxic", artist: "Britney Spears", year: 2003 },
+            { title: "Yeah!", artist: "Usher", year: 2004 },
+            { title: "I Gotta Feeling", artist: "Black Eyed Peas", year: 2009 },
+            { title: "בואי", artist: "הפרויקט של עידן רייכל", year: 2002 },
+            { title: "משא ומתן", artist: "מוש בן ארי", year: 2006 },
+            { title: "שירת הסטיקר", artist: "הדג נחש", year: 2004 },
+            { title: "תגידי שטוב", artist: "כנסיית השכל", year: 2001 },
+            { title: "יומן מסע", artist: "אביב גפן", year: 2000 },
+            { title: "רבות הדרכים", artist: "דניאל סלומון", year: 2005 },
+            { title: "ניצחת איתי הכל", artist: "עמיר בניון", year: 2004 },
+            { title: "ריקוד רומנטי", artist: "ישי לוי", year: 2008 },
+
+            // שנות ה-2010
+            { title: "Rolling in the Deep", artist: "Adele", year: 2010 },
+            { title: "Uptown Funk", artist: "Bruno Mars", year: 2014 },
+            { title: "Shape of You", artist: "Ed Sheeran", year: 2017 },
+            { title: "bad guy", artist: "Billie Eilish", year: 2019 },
+            { title: "Blinding Lights", artist: "The Weeknd", year: 2019 },
+            { title: "Watermelon Sugar", artist: "Harry Styles", year: 2019 },
+            { title: "Someone Like You", artist: "Adele", year: 2011 },
+            { title: "Despacito", artist: "Luis Fonsi", year: 2017 },
+            { title: "Old Town Road", artist: "Lil Nas X", year: 2019 },
+            { title: "Happy", artist: "Pharrell Williams", year: 2013 },
+            { title: "Toy", artist: "נטע ברזילי", year: 2018 },
+            { title: "טודו בום", artist: "סטטיק ובן אל", year: 2017 },
+            { title: "שני משוגעים", artist: "עומר אדם", year: 2018 },
+            { title: "מסע", artist: "אליעד", year: 2019 },
+            { title: "דרך השלום", artist: "פאר טסי", year: 2014 },
+            { title: "מברוק", artist: "איתי לוי", year: 2019 },
+            { title: "ויקיפדיה", artist: "חנן בן ארי", year: 2017 },
+            { title: "מלכת השושנים", artist: "עדן בן זקן", year: 2015 },
+
+            // שנות ה-2020
+            { title: "Flowers", artist: "Miley Cyrus", year: 2023 },
+            { title: "Anti-Hero", artist: "Taylor Swift", year: 2022 },
+            { title: "As It Was", artist: "Harry Styles", year: 2022 },
+            { title: "Levitating", artist: "Dua Lipa", year: 2020 },
+            { title: "Vampire", artist: "Olivia Rodrigo", year: 2023 },
+            { title: "Drivers License", artist: "Olivia Rodrigo", year: 2021 },
+            { title: "Kill Bill", artist: "SZA", year: 2022 },
+            { title: "Good 4 U", artist: "Olivia Rodrigo", year: 2021 },
+            { title: "Peaches", artist: "Justin Bieber", year: 2021 },
+            { title: "Cruel Summer", artist: "Taylor Swift", year: 2023 },
+            { title: "Unicorn", artist: "Noa Kirel", year: 2023 },
+            { title: "אהבה חולה", artist: "פאר טסי", year: 2022 },
+            { title: "תיק קטן", artist: "נס וסטילה", year: 2023 },
+            { title: "פרובוקטיבית", artist: "נועה קירל", year: 2023 },
+            { title: "קרן שמש", artist: "בניה ברבי", year: 2022 },
+            { title: "אפס מאמץ", artist: "סטטיק ובן אל ונטע", year: 2021 },
+            { title: "עטלף עיוור", artist: "חנן בן ארי", year: 2023 },
+            { title: "חרבו דרבו", artist: "נס וסטילה", year: 2023 }
+        ];
+
+        let currentSongsList = [];
+        let currentSongIndex = 0;
+        let score = 0;
+        let isWaitingForNext = false;
+        let currentAudio = null;
+        let currentAlbumCoverUrl = null; 
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function startGame() {
+            document.getElementById("endScreen").classList.add("hidden");
+            document.getElementById("gameScreen").classList.remove("hidden");
+
+            currentSongsList = [...allSongs];
+            shuffleArray(currentSongsList);
+            currentSongsList = currentSongsList.slice(0, 10);
+            
+            score = 0;
+            currentSongIndex = 0;
+            updateScoreBoard();
+            loadSong();
+        }
+
+        async function loadSong() {
+            const song = currentSongsList[currentSongIndex];
+            document.getElementById("songTitle").innerText = song.title;
+            document.getElementById("songArtist").innerText = song.artist;
+            
+            document.getElementById("yearInput").value = "";
+            document.getElementById("yearInput").disabled = false;
+            document.getElementById("feedbackMsg").innerText = "";
+            document.getElementById("feedbackMsg").style.backgroundColor = "transparent";
+            document.getElementById("submitBtn").innerText = "שלחי ניחוש";
+            document.getElementById("albumArt").style.display = "none"; 
+            document.getElementById("yearInput").focus();
+            
+            isWaitingForNext = false;
+            currentAlbumCoverUrl = null;
+            
+            if (currentAudio) {
+                currentAudio.pause();
+            }
+
+            await fetchAudioPreview(song.title, song.artist);
+        }
+
+        async function fetchAudioPreview(title, artist) {
+            const audioContainer = document.getElementById("audioContainer");
+            audioContainer.innerHTML = '<span class="loading-text" id="loadingText">מחפש קטע שמע... ⏳</span>';
+            
+            try {
+                const query = encodeURIComponent(`${title} ${artist}`);
+                const response = await fetch(`https://itunes.apple.com/search?term=${query}&media=music&limit=1`);
+                const data = await response.json();
+
+                if (data.results && data.results.length > 0) {
+                    const result = data.results[0];
+                    
+                    if (result.artworkUrl100) {
+                        currentAlbumCoverUrl = result.artworkUrl100.replace('100x100bb', '300x300bb');
+                    }
+
+                    if (result.previewUrl) {
+                        const audioElement = document.createElement('audio');
+                        audioElement.controls = true;
+                        audioElement.src = result.previewUrl;
+                        
+                        audioContainer.innerHTML = '';
+                        audioContainer.appendChild(audioElement);
+                        currentAudio = audioElement;
+                    } else {
+                        audioContainer.innerHTML = '<span style="color: #ff9800; font-size: 0.9em;">השיר נמצא, אבל ללא קטע שמע פתוח להאזנה 😔</span>';
+                    }
+                } else {
+                    audioContainer.innerHTML = '<span style="color: #f44336; font-size: 0.9em;">לא נמצא במאגר iTunes (אבל עדיין אפשר לנחש!)</span>';
+                }
+            } catch (error) {
+                audioContainer.innerHTML = '<span style="color: #f44336; font-size: 0.9em;">שגיאה בחיבור לשרת השמע</span>';
+            }
+        }
+
+        function checkGuess() {
+            if (isWaitingForNext) {
+                currentSongIndex++;
+                if (currentSongIndex < currentSongsList.length) {
+                    loadSong();
+                    updateScoreBoard();
+                } else {
+                    endGame();
+                }
+                return;
+            }
+
+            const guessInput = document.getElementById("yearInput").value;
+            const feedback = document.getElementById("feedbackMsg");
+            const albumArtImg = document.getElementById("albumArt");
+            
+            if (!guessInput || isNaN(guessInput)) {
+                feedback.innerText = "נא להכניס שנה (מספר).";
+                return;
+            }
+
+            const guess = parseInt(guessInput);
+            const actualYear = currentSongsList[currentSongIndex].year;
+            const diff = Math.abs(guess - actualYear);
+
+            if (currentAlbumCoverUrl) {
+                albumArtImg.src = currentAlbumCoverUrl;
+                albumArtImg.style.display = "block";
+            }
+
+            document.getElementById("yearInput").disabled = true; 
+
+            if (diff === 0) {
+                feedback.innerHTML = `🎉 בול פגיעה! השנה היא ${actualYear}<br><span style="font-size:0.8em">+3 נקודות</span>`;
+                feedback.style.color = "#1db954";
+                score += 3;
+            } else if (diff <= 2) {
+                feedback.innerHTML = `😅 קרוב! השנה היא ${actualYear}.<br><span style="font-size:0.8em">+1 נקודה (פספסת ב-${diff} שנים)</span>`;
+                feedback.style.color = "#ffca28";
+                score += 1;
+            } else {
+                feedback.innerHTML = `❌ טעות. השנה הנכונה היא ${actualYear}.`;
+                feedback.style.color = "#f44336";
+            }
+
+            isWaitingForNext = true;
+            document.getElementById("submitBtn").innerText = "לשיר הבא ⏭️";
+            updateScoreBoard();
+        }
+
+        function updateScoreBoard() {
+            document.getElementById("scoreDisplay").innerText = `נקודות: ${score}`;
+            document.getElementById("progressDisplay").innerText = `שיר ${currentSongIndex + 1} / ${currentSongsList.length}`;
+            
+            const progressPercentage = ((currentSongIndex) / currentSongsList.length) * 100;
+            document.getElementById("progressBar").style.width = progressPercentage + "%";
+        }
+
+        function endGame() {
+            if (currentAudio) currentAudio.pause();
+            document.getElementById("progressBar").style.width = "100%";
+            document.getElementById("gameScreen").classList.add("hidden");
+            document.getElementById("endScreen").classList.remove("hidden");
+            document.getElementById("finalScore").innerText = score;
+            
+            const maxScore = currentSongsList.length * 3;
+            let message = "";
+            
+            if (score >= maxScore * 0.8) {
+                message = "וואו, מטורף! יש לך ידע פנומנלי במוזיקה! 👑";
+            } else if (score >= maxScore * 0.4) {
+                message = "יפה מאוד! שלטת יפה בציר הזמן 👏";
+            } else {
+                message = "לא נורא, תמיד אפשר לשחק שוב ולהשתפר 😉";
+            }
+            
+            document.getElementById("finalMessage").innerText = message;
+        }
+
+        document.getElementById("yearInput").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                checkGuess();
+            }
+        });
+
+        window.onload = startGame;
+    </script>
+</body>
+</html>
