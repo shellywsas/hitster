@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beatstory - משחק טריוויה מוזיקלי</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎧</text></svg>">
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="game-container">
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+
+        <h1>🎸 Beatstory</h1>
+        
+        <div id="startScreen">
+            <p class="subtitle" style="margin-bottom: 5px;">אילו שירים בא לך לשמוע?</p>
+            <div class="lang-selection">
+                <label><input type="radio" name="langPref" value="both" checked> הכל 🌍</label>
+                <label><input type="radio" name="langPref" value="he"> ישראלי 🇮🇱</label>
+                <label><input type="radio" name="langPref" value="en"> לועזי 🇺🇸</label>
+                <label><input type="radio" name="langPref" value="festigal"> פסטיגל 🎡</label>
+            </div>
+
+            <p class="subtitle" style="margin-top: 20px; margin-bottom: 5px;">כמה שירים בסיבוב?</p>
+            <div class="lang-selection">
+                <label><input type="radio" name="numSongs" value="5"> 5</label>
+                <label><input type="radio" name="numSongs" value="10" checked> 10</label>
+                <label><input type="radio" name="numSongs" value="15"> 15</label>
+                <label><input type="radio" name="numSongs" value="20"> 20</label>
+            </div>
+
+            <p class="subtitle" style="margin-top: 20px; margin-bottom: 10px;">מה רמת האתגר?</p>
+            
+            <button class="mode-btn" onclick="startGame('year')">
+                📅 נחש את השנה
+                <span>פגיעה בעשור = 2 נק', שנה מדויקת = 3 נק'.</span>
+            </button>
+            
+            <button class="mode-btn" onclick="startGame('name')">
+                🎤 נחש את השיר
+                <span>שם השיר יוסתר! מותר לטעות באיות קצת 😉.</span>
+            </button>
+
+            <button class="mode-btn" onclick="startGame('both')" style="border-color: #FFC107;">
+                🔥 האתגר הכפול
+                <span>נחשי גם את השיר וגם את השנה. מקסימום נקודות!</span>
+            </button>
+        </div>
+
+        <div id="gameScreen" class="hidden">
+            <div class="top-bar">
+                <p id="gameInstruction" style="color: #b3b3b3; margin: 0; font-size: 0.95em;"></p>
+                <button class="back-btn" onclick="showStartScreen()">🔙 לתפריט הראשי</button>
+            </div>
+            
+            <div class="song-info">
+                <img id="albumArt" class="album-art" src="" alt="Album Art">
+                <div class="song-title" id="songTitle">שם השיר</div>
+                <div class="song-artist" id="songArtist">אמן</div>
+                
+                <div class="audio-player-container" id="audioContainer">
+                    <span class="loading-text" id="loadingText">מחפש קטע שמע... ⏳</span>
+                </div>
+            </div>
+            
+            <div class="input-area">
+                <input type="text" id="nameInput" placeholder="איך קוראים לשיר?" class="hidden">
+                <input type="number" id="yearInput" placeholder="שנת הוצאה (למשל 1995)" class="hidden">
+                
+                <div class="buttons-row">
+                    <button id="prevBtn" class="action-btn secondary hidden" onclick="prevSong()">⏮️ צפייה בקודם</button>
+                    <button id="submitBtn" class="action-btn" onclick="checkGuess()">שלחי ניחוש</button>
+                </div>
+            </div>
+            
+            <div class="feedback" id="feedbackMsg"></div>
+            
+            <div class="score-board">
+                <span id="scoreDisplay">נקודות: 0</span>
+                <span id="progressDisplay">שיר 1 / ?</span>
+            </div>
+        </div>
+
+        <div id="endScreen" class="hidden">
+            <h2 style="font-size: 2em; margin-bottom: 10px;">המשחק נגמר! 🎉</h2>
+            <p>השגת <span id="finalScore" style="color: #FFB300; font-weight: bold; font-size: 1.8em;"></span> מתוך <span id="maxScoreDisplay"></span> נקודות.</p>
+            <p id="finalMessage" style="font-size: 1.2em; color: #b3b3b3; margin-bottom: 30px;"></p>
+            <button class="action-btn" onclick="showStartScreen()">לתפריט הראשי 🔄</button>
+        </div>
+    </div>
+
+    <script src="songs.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
